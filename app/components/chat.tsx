@@ -728,6 +728,7 @@ export function Chat() {
 
   const accessStore = useAccessStore();
 
+  // check auth
   if (
     context.length === 0 &&
     session.messages.at(0)?.content !== BOT_HELLO.content
@@ -738,6 +739,8 @@ export function Chat() {
     }
     context.push(copiedHello);
   }
+
+  // check usage
 
   // clear context index = context length + index in messages
   const clearContextIndex =
