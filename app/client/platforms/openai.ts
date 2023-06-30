@@ -1,4 +1,4 @@
-import { OpenaiPath, REQUEST_TIMEOUT_MS } from "@/app/constant";
+import { OpenaiPath, AIAppPath, REQUEST_TIMEOUT_MS } from "@/app/constant";
 import { useAccessStore, useAppConfig, useChatStore } from "@/app/store";
 
 import { ChatOptions, getHeaders, LLMApi, LLMUsage } from "../api";

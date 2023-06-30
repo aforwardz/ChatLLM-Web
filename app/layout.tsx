@@ -5,7 +5,7 @@ import "./styles/highlight.scss";
 import { getClientConfig } from "./config/client";
 
 export const metadata = {
-  title: "AI NEXT Web",
+  title: "AI Pocket Web",
   description: "Make AI Within Reach.",
   viewport: {
     width: "device-width",
@@ -17,7 +17,7 @@ export const metadata = {
     { media: "(prefers-color-scheme: dark)", color: "#151515" },
   ],
   appleWebApp: {
-    title: "AI NEXT Web",
+    title: "AI Pocket Web",
     statusBarStyle: "default",
   },
 };
