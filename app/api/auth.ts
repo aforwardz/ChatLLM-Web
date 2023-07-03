@@ -47,13 +47,12 @@ export async function auth(req: NextRequest) {
   const { accessCode, apiKey: token } = parseApiKey(authToken);
 
   const hashedCode = md5.hash(accessCode ?? "").trim();
-  console.log(hashedCode);
 
   try {
     const codeInfo = await client.get(hashedCode);
-    console.log(codeInfo);
+    console.log("code info: ", codeInfo);
     try {
-      const codeInfo = JSON.parse(val);
+      const codeInfo = JSON.parse(codeInfo);
     } catch (error) {
       return {
         error: true,
@@ -75,7 +74,7 @@ export async function auth(req: NextRequest) {
   console.log("[User IP] ", getIP(req));
   console.log("[Time] ", new Date().toLocaleString());
 
-  if (serverConfig.needCode && !codeInfo && !token) {
+  if (serverConfig.needCode && codeInfo.get("isExpired")) {
     return {
       error: true,
       msg: !accessCode ? "empty access code" : "wrong access code",
