@@ -3,21 +3,7 @@ import { getServerSideConfig } from "../config/server";
 import md5 from "spark-md5";
 import { ACCESS_CODE_PREFIX } from "../constant";
 
-//const Redis, { RedisOptions } from 'ioredis';
-//import { RedisHost, RedisPort } from "../constant";
-//const options: RedisOptions = {host: RedisHost, port: RedisPort}
-//const client = new Redis(options);
-//
-//client.on('error', (error: unknown) => {
-//  console.warn('[Redis] Error connecting', error);
-//});
-
-import { createClient } from "redis";
-const client = createClient({ url: "redis://127.0.0.1:6379/1" });
-
-client.on("error", (err) => console.log("Redis Client Error", err));
-
-client.connect();
+import { redis_cli } from "./db";
 
 function getIP(req: NextRequest) {
   let ip = req.ip ?? req.headers.get("x-real-ip");
@@ -57,15 +43,15 @@ export async function auth(req: NextRequest) {
   console.log("[Time] ", new Date().toLocaleString());
 
   try {
-    const val = await client.get(hashedCode);
-    if (codeInfo === null) {
+    const hasCodeVal = await redis_cli.hasKey(hashedCode);
+    if (!hasCodeVal) {
       return {
         error: true,
         authType: "access",
         msg: "wrong access code",
       };
     }
-    const codeInfo = JSON.parse(val);
+    const codeInfo = await redis_cli.getValue(hashedCode);
     console.log("code info: ", codeInfo);
 
     if (codeInfo.isExpired) {
@@ -117,5 +103,6 @@ export async function auth(req: NextRequest) {
 
   return {
     error: false,
+    hashCode: hashedCode,
   };
 }

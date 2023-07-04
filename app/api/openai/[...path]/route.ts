@@ -3,6 +3,7 @@ import { prettyObject } from "@/app/utils/format";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../auth";
 import { requestOpenai } from "../../common";
+import { redis_cli } from "../../db";
 
 const ALLOWD_PATH = new Set(Object.values(OpenaiPath));
 
@@ -31,6 +32,7 @@ async function handle(
     );
   }
 
+  const modelName = req.headers.get("ModelName") ?? "";
   const authResult = await auth(req);
   console.log("[Auth Res]", authResult);
   if (authResult.error && authResult.authType === "access") {
@@ -45,7 +47,11 @@ async function handle(
   }
 
   try {
-    return await requestOpenai(req);
+    const res = await requestOpenai(req);
+
+    redis_cli.useModel(authResult.hashCode, modelName);
+
+    return res;
   } catch (e) {
     console.error("[OpenAI] ", e);
     return NextResponse.json(prettyObject(e));
