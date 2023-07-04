@@ -32,9 +32,15 @@ async function handle(
   }
 
   const authResult = await auth(req);
-  if (authResult.error) {
+  console.log("[Auth Res]", authResult);
+  if (authResult.error && authResult.authType === "access") {
     return NextResponse.json(authResult, {
       status: 401,
+    });
+  }
+  if (authResult.error && authResult.authType === "usage") {
+    return NextResponse.json(authResult, {
+      status: 402,
     });
   }
 

@@ -42,11 +42,6 @@ export interface ChatStat {
   charCount: number;
 }
 
-export interface ChatUsage {
-  gpt3remains: number;
-  gpt4remains: number;
-}
-
 export interface ChatSession {
   id: number;
   topic: string;
@@ -57,7 +52,6 @@ export interface ChatSession {
   lastUpdate: number;
   lastSummarizeIndex: number;
   clearContextIndex?: number;
-  remains: ChatUsage;
 
   mask: Mask;
 }
@@ -90,7 +84,6 @@ interface ChatStore {
   sessions: ChatSession[];
   currentSessionIndex: number;
   globalId: number;
-  remains: ChatUsage;
   clearSessions: () => void;
   moveSession: (from: number, to: number) => void;
   selectSession: (index: number) => void;
@@ -148,8 +141,6 @@ export const useChatStore = create<ChatStore>()(
       sessions: [createEmptySession()],
       currentSessionIndex: 0,
       globalId: 0,
-      gpt3remains: 0,
-      gpt4remains: 0,
 
       clearSessions() {
         set(() => ({

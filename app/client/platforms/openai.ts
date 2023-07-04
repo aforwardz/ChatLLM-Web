@@ -52,12 +52,14 @@ export class ChatGPTApi implements LLMApi {
     options.onController?.(controller);
 
     try {
+      let headers = getHeaders();
+      headers.ModelName = modelConfig.model;
       const chatPath = this.path(OpenaiPath.ChatPath);
       const chatPayload = {
         method: "POST",
         body: JSON.stringify(requestPayload),
         signal: controller.signal,
-        headers: getHeaders(),
+        headers: headers,
       };
 
       // make a fetch request
@@ -110,6 +112,10 @@ export class ChatGPTApi implements LLMApi {
 
               if (res.status === 401) {
                 responseTexts.push(Locale.Error.Unauthorized);
+              }
+
+              if (res.status === 402) {
+                responseTexts.push(Locale.Error.BalanceUsedUp);
               }
 
               if (extraInfo) {

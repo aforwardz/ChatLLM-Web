@@ -13,7 +13,7 @@ import { ACCESS_CODE_PREFIX } from "../constant";
 //});
 
 import { createClient } from "redis";
-const client = createClient();
+const client = createClient({ url: "redis://127.0.0.1:6379/1" });
 
 client.on("error", (err) => console.log("Redis Client Error", err));
 
@@ -42,44 +42,65 @@ function parseApiKey(bearToken: string) {
 
 export async function auth(req: NextRequest) {
   const authToken = req.headers.get("Authorization") ?? "";
+  const modelName = req.headers.get("ModelName") ?? "";
 
   // check if it is openai api key or user token
   const { accessCode, apiKey: token } = parseApiKey(authToken);
 
   const hashedCode = md5.hash(accessCode ?? "").trim();
 
+  // console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
+  console.log("[Auth] req model:", modelName);
+  console.log("[Auth] got access code:", accessCode);
+  console.log("[Auth] hashed access code:", hashedCode);
+  console.log("[User IP] ", getIP(req));
+  console.log("[Time] ", new Date().toLocaleString());
+
   try {
-    const codeInfo = await client.get(hashedCode);
-    console.log("code info: ", codeInfo);
-    try {
-      const codeInfo = JSON.parse(codeInfo);
-    } catch (error) {
+    const val = await client.get(hashedCode);
+    if (codeInfo === null) {
       return {
         error: true,
+        authType: "access",
         msg: "wrong access code",
+      };
+    }
+    const codeInfo = JSON.parse(val);
+    console.log("code info: ", codeInfo);
+
+    if (codeInfo.isExpired) {
+      return {
+        error: true,
+        authType: "usage",
+        msg: "access code has expired",
+      };
+    }
+
+    if (modelName.includes("gpt-3") && codeInfo.gpt3remains <= 0) {
+      return {
+        error: true,
+        authType: "usage",
+        msg: "GPT3.5 has reached the limit",
+      };
+    }
+
+    if (modelName.includes("gpt-4") && codeInfo.gpt4remains <= 0) {
+      return {
+        error: true,
+        authType: "usage",
+        msg: "GPT4 has reached the limit",
       };
     }
   } catch (e) {
     console.error("Redis Get Code Error: ", e);
     return {
       error: true,
-      msg: "access code not found",
+      authType: "access",
+      msg: "Get Code Error",
     };
   }
 
   const serverConfig = getServerSideConfig();
-  console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
-  console.log("[Auth] got access code:", accessCode);
-  console.log("[Auth] hashed access code:", hashedCode);
-  console.log("[User IP] ", getIP(req));
-  console.log("[Time] ", new Date().toLocaleString());
-
-  if (serverConfig.needCode && codeInfo.get("isExpired")) {
-    return {
-      error: true,
-      msg: !accessCode ? "empty access code" : "wrong access code",
-    };
-  }
 
   // if user does not provide an api key, inject system api key
   if (!token) {
