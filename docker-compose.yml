@@ -1,9 +1,9 @@
-version: '3.9'
+version: '1.0'
 services:
-  chatgpt-next-web: 
+  chatllm-next:
     profiles: ["no-proxy"]
-    container_name: chatgpt-next-web
-    image: yidadaa/chatgpt-next-web
+    container_name: chatllm-next
+    image: aforwardz/chatllm-next
     ports:
       - 3000:3000
     environment:
@@ -14,10 +14,10 @@ services:
       - HIDE_USER_API_KEY=$HIDE_USER_API_KEY
       - DISABLE_GPT4=$DISABLE_GPT4
 
-  chatgpt-next-web-proxy: 
+  chatllm-next-proxy:
     profiles: ["proxy"]
-    container_name: chatgpt-next-web-proxy
-    image: yidadaa/chatgpt-next-web
+    container_name: chatllm-next-proxy
+    image: aforwardz/chatllm-next
     ports:
       - 3000:3000
     environment:
