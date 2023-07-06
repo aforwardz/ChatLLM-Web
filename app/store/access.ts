@@ -13,6 +13,7 @@ export interface AccessControlStore {
   needCode: boolean;
   hideUserApiKey: boolean;
   openaiUrl: string;
+  pocketaiUrl: string;
   hideBalanceQuery: boolean;
 
   updateToken: (_: string) => void;
@@ -27,6 +28,7 @@ let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 
 const DEFAULT_OPENAI_URL =
   getClientConfig()?.buildMode === "export" ? DEFAULT_API_HOST : "/api/openai/";
+const DEFAULT_POCKETAI_URL = "/api/pocketai/";
 console.log("[API] default openai url", DEFAULT_OPENAI_URL);
 
 export const useAccessStore = create<AccessControlStore>()(
@@ -37,6 +39,7 @@ export const useAccessStore = create<AccessControlStore>()(
       needCode: true,
       hideUserApiKey: false,
       openaiUrl: DEFAULT_OPENAI_URL,
+      pocketaiUrl: DEFAULT_POCKETAI_URL,
       hideBalanceQuery: false,
 
       enabledAccessControl() {

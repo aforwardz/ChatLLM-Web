@@ -6,6 +6,8 @@ const en: LocaleType = {
   Error: {
     Unauthorized:
       "Unauthorized access, please enter access code in [auth](/#/auth) page.",
+    BalanceUsedUp:
+      "The usage of chat has used up, please contact VX: congshen2077 for more counts。",
   },
   Auth: {
     Title: "Need Access Code",
@@ -186,8 +188,8 @@ const en: LocaleType = {
     },
     Usage: {
       Title: "Account Balance",
-      SubTitle(used: any, total: any) {
-        return `Used this month $${used}, subscription $${total}`;
+      SubTitle(balance: any) {
+        return `Balance $${balance}`;
       },
       IsChecking: "Checking...",
       Check: "Check",

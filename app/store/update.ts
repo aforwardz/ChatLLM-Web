@@ -8,8 +8,9 @@ export interface UpdateStore {
   lastUpdate: number;
   remoteVersion: string;
 
-  used?: number;
-  subscription?: number;
+  used: number;
+  subscription: number;
+  balance: number;
   lastUpdateUsage: number;
 
   version: string;
@@ -28,6 +29,10 @@ export const useUpdateStore = create<UpdateStore>()(
       lastUpdateUsage: 0,
 
       version: "unknown",
+
+      used: 0,
+      subscription: 0,
+      balance: 0,
 
       async getLatestVersion(force = false) {
         set(() => ({ version: getClientConfig()?.commitId ?? "unknown" }));
@@ -62,11 +67,11 @@ export const useUpdateStore = create<UpdateStore>()(
 
         try {
           const usage = await api.llm.usage();
+          console.log("[Got Usage] ", usage);
 
           if (usage) {
             set(() => ({
-              used: usage.used,
-              subscription: usage.total,
+              balance: usage.balance,
             }));
           }
         } catch (e) {

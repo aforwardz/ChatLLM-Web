@@ -3,7 +3,7 @@ import { getServerSideConfig } from "../config/server";
 import md5 from "spark-md5";
 import { ACCESS_CODE_PREFIX } from "../constant";
 
-import { redis_cli } from "./db";
+import { user_cli } from "./db";
 
 function getIP(req: NextRequest) {
   let ip = req.ip ?? req.headers.get("x-real-ip");
@@ -16,7 +16,7 @@ function getIP(req: NextRequest) {
   return ip;
 }
 
-function parseApiKey(bearToken: string) {
+export function parseApiKey(bearToken: string) {
   const token = bearToken.trim().replaceAll("Bearer ", "").trim();
   const isOpenAiKey = !token.startsWith(ACCESS_CODE_PREFIX);
 
@@ -43,7 +43,7 @@ export async function auth(req: NextRequest) {
   console.log("[Time] ", new Date().toLocaleString());
 
   try {
-    const hasCodeVal = await redis_cli.hasKey(hashedCode);
+    const hasCodeVal = await user_cli.hasKey(hashedCode);
     if (!hasCodeVal) {
       return {
         error: true,
@@ -51,7 +51,7 @@ export async function auth(req: NextRequest) {
         msg: "wrong access code",
       };
     }
-    const codeInfo = await redis_cli.getValue(hashedCode);
+    const codeInfo = await user_cli.getValue(hashedCode);
     console.log("code info: ", codeInfo);
 
     if (codeInfo.isExpired) {

@@ -6,7 +6,7 @@ export const UPDATE_URL = `${REPO_URL}#keep-updated`;
 export const FETCH_COMMIT_URL = `https://api.github.com/repos/${OWNER}/${REPO}/commits?per_page=1`;
 export const FETCH_TAG_URL = `https://api.github.com/repos/${OWNER}/${REPO}/tags?per_page=1`;
 export const RUNTIME_CONFIG_DOM = "danger-runtime-config";
-export const DEFAULT_API_HOST = "https://chatgpt1.nextweb.fun/api/proxy";
+export const DEFAULT_API_HOST = "";
 
 export enum Path {
   Home = "/",
@@ -50,12 +50,15 @@ export const EXPORT_MESSAGE_CLASS_NAME = "export-markdown";
 
 export const OpenaiPath = {
   ChatPath: "v1/chat/completions",
-  UsagePath: "dashboard/billing/usage",
-  SubsPath: "dashboard/billing/subscription",
 };
 
-export const AIAppPath = {
-  UsagePath: "ai_next/usage",
+export const PocketAIPath = {
+  UsagePath: "pocketai/usage",
+};
+
+export const CostWay = {
+  UseBalance: "balance",
+  UseCount: "count",
 };
 
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
