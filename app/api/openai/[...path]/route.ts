@@ -49,7 +49,7 @@ async function handle(
   try {
     const res = await requestOpenai(req);
 
-    redis_cli.useModel(authResult.hashCode, modelName);
+    redis_cli.useModel(authResult.hashCode ?? "", modelName);
 
     return res;
   } catch (e) {

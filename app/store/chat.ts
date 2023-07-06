@@ -31,7 +31,6 @@ export function createMessage(override: Partial<ChatMessage>): ChatMessage {
     date: new Date().toLocaleString(),
     role: "user",
     content: "",
-    charCount: 0,
     ...override,
   };
 }

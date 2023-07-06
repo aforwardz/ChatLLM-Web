@@ -6,6 +6,8 @@ const en: LocaleType = {
   Error: {
     Unauthorized:
       "Unauthorized access, please enter access code in [auth](/#/auth) page.",
+    BalanceUsedUp:
+      "The usage of chat has used up, please contact VX: congshen2077 for more counts。",
   },
   Auth: {
     Title: "Need Access Code",

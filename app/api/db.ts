@@ -1,4 +1,4 @@
-import { createClient } from "redis";
+import { createClient, RedisClientType } from "redis";
 const client = createClient({ url: "redis://127.0.0.1:6379/1" });
 
 client.on("error", (err) => console.log("Redis Client Error", err));
@@ -6,7 +6,7 @@ client.on("error", (err) => console.log("Redis Client Error", err));
 client.connect();
 
 export class RedisCli {
-  public client: null;
+  public client: RedisClientType;
 
   constructor() {
     this.client = createClient({ url: "redis://127.0.0.1:6379/1" });
