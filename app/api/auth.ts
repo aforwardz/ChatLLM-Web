@@ -48,7 +48,7 @@ export async function auth(req: NextRequest) {
       return {
         error: true,
         authType: "access",
-        msg: "wrong access code",
+        msg: "wrong access code: " + accessCode,
       };
     }
     const codeInfo = await user_cli.getValue(hashedCode);

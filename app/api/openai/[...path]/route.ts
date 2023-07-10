@@ -55,26 +55,29 @@ async function handle(
   try {
     const res = await requestOpenai(req);
 
-    const clonedRes = res.clone();
-    const clonedBody = await clonedRes.text();
-    const jsonBody = JSON.parse(clonedBody);
+    if (res.status === 200) {
+      const clonedRes = res.clone();
+      const jsonBody = await clonedRes.json();
+      console.log("[clone Json]", jsonBody);
+      // const jsonBody = JSON.parse(clonedBody);
 
-    if (
-      subpath === OpenaiPath.ChatPath &&
-      (jsonBody?.choices ?? []).length > 0 &&
-      jsonBody.choices[0].finish_reason === "stop"
-    ) {
-      if (COST_WAY === CostWay.UseBalance) {
-        const tokenUsage = jsonBody.usage;
-        user_cli.useModelBalance(
-          authResult.hashCode ?? "",
-          modelName,
-          tokenUsage.total_tokens,
-        );
-      }
+      if (
+        subpath === OpenaiPath.ChatPath &&
+        (jsonBody?.choices ?? []).length > 0 &&
+        jsonBody.choices[0].finish_reason === "stop"
+      ) {
+        if (COST_WAY === CostWay.UseBalance) {
+          const tokenUsage = jsonBody.usage;
+          user_cli.useModelBalance(
+            authResult.hashCode ?? "",
+            modelName,
+            tokenUsage.total_tokens,
+          );
+        }
 
-      if (COST_WAY === CostWay.UseCount) {
-        user_cli.useModelCount(authResult.hashCode ?? "", modelName);
+        if (COST_WAY === CostWay.UseCount) {
+          user_cli.useModelCount(authResult.hashCode ?? "", modelName);
+        }
       }
     }
 
