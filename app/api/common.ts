@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OpenaiPath, CostWay } from "@/app/constant";
 import { user_cli } from "./db";
-import { get_encoding, encoding_for_model } from "tiktoken";
-const { Tiktoken } = require("tiktoken/lite");
-const cl100k_base = require("tiktoken/encoders/cl100k_base.json");
+import { get_encoding } from "tiktoken";
 
 export const OPENAI_URL = "api.openai.com";
 const DEFAULT_PROTOCOL = "https";
@@ -13,16 +11,10 @@ const DISABLE_GPT4 = !!process.env.DISABLE_GPT4;
 
 const ALLOWD_COST = new Set(Object.values(CostWay));
 
-const DEFAULT_COST_WAY = "balance";
+const DEFAULT_COST_WAY = CostWay.UseBalance;
 const COST_WAY = !ALLOWD_COST.has(process.env.COST_WAY ?? "")
   ? DEFAULT_COST_WAY
   : process.env.COST_WAY;
-
-const encoder = new Tiktoken(
-  cl100k_base.bpe_ranks,
-  cl100k_base.special_tokens,
-  cl100k_base.pat_str,
-);
 
 async function costBalance(
   res: Response,
@@ -37,6 +29,7 @@ async function costBalance(
   }
 
   // cost tokens
+  let encoder = get_encoding("cl100k_base");
   let completionTokens = 0;
   const reader = res.body?.getReader();
   if (!reader) {
@@ -122,19 +115,22 @@ export async function requestOpenai(req: NextRequest, hashCode: string) {
   const modelName = req.headers.get("ModelName") ?? "";
   let promptTokens = 0;
 
+  console.log("[OpenAI] cost way: ", COST_WAY);
   if (COST_WAY === CostWay.UseBalance && req.body) {
     const clonedBody = await req.text();
+    fetchOptions.body = clonedBody;
     const jsonBody = JSON.parse(clonedBody);
 
     if (jsonBody?.messages.length > 0 && jsonBody?.messages.length <= 6) {
       const lastMessage = jsonBody.messages[jsonBody.messages.length - 1];
       if (lastMessage.role === "user") {
+        let encoder = get_encoding("cl100k_base");
         promptTokens += encoder.encode(lastMessage.content).length;
-        // encoder.free()
+        encoder.free();
+        console.log("[OpenAI] prompt tokens: ", promptTokens);
       }
     }
   }
-  console.log("[OpenAI] prompt tokens: ", promptTokens);
 
   // #1815 try to refuse gpt4 request
   if (DISABLE_GPT4 && req.body) {
@@ -171,7 +167,8 @@ export async function requestOpenai(req: NextRequest, hashCode: string) {
     newHeaders.set("X-Accel-Buffering", "no");
 
     if (openaiPath === OpenaiPath.ChatPath && res.ok) {
-      costBalance(res.clone(), hashCode, modelName, promptTokens);
+      const clonedRes = res.clone();
+      costBalance(clonedRes, hashCode, modelName, promptTokens);
     }
 
     return new Response(res.body, {
