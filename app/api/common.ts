@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OpenaiPath, CostWay } from "@/app/constant";
 import { user_cli } from "./db";
-import { get_encoding } from "tiktoken";
+import { getEncoding } from "js-tiktoken";
 
 export const OPENAI_URL = "api.openai.com";
 const DEFAULT_PROTOCOL = "https";
@@ -29,7 +29,7 @@ async function costBalance(
   }
 
   // cost tokens
-  let encoder = get_encoding("cl100k_base");
+  let encoder = getEncoding("cl100k_base");
   let completionTokens = 0;
   const reader = res.body?.getReader();
   if (!reader) {
@@ -61,7 +61,7 @@ async function costBalance(
 
     completionTokens += encoder.encode(deltaText).length;
     console.log("[OpenAI] completion tokens: ", completionTokens);
-    encoder.free;
+    // encoder.free;
   }
 
   if (COST_WAY === CostWay.UseBalance) {
@@ -124,9 +124,9 @@ export async function requestOpenai(req: NextRequest, hashCode: string) {
     if (jsonBody?.messages.length > 0 && jsonBody?.messages.length <= 6) {
       const lastMessage = jsonBody.messages[jsonBody.messages.length - 1];
       if (lastMessage.role === "user") {
-        let encoder = get_encoding("cl100k_base");
+        let encoder = getEncoding("cl100k_base");
         promptTokens += encoder.encode(lastMessage.content).length;
-        encoder.free();
+        // encoder.free();
         console.log("[OpenAI] prompt tokens: ", promptTokens);
       }
     }
