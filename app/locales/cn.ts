@@ -18,7 +18,8 @@ const cn = {
     ChatItemCount: (count: number) => `${count} 条对话`,
   },
   Chat: {
-    SubTitle: (count: number) => `共 ${count} 条对话`,
+    SubTitle: (count: number, memory: boolean) =>
+      `共 ${count} 条对话  [历史摘要：${memory ? "开" : "关"}]`,
     Actions: {
       ChatList: "查看消息列表",
       CompressedHistory: "查看压缩后的历史 Prompt",
@@ -96,7 +97,7 @@ const cn = {
   Memory: {
     Title: "历史摘要",
     EmptyContent: "对话内容过短，无需总结",
-    Send: "自动压缩聊天记录并作为上下文发送",
+    Send: "自动压缩聊天记录并作为上下文发送，可提高回答精度，但会消耗字数",
     Copy: "复制摘要",
     Reset: "[unused]",
     ResetConfirm: "确认清空历史摘要？",

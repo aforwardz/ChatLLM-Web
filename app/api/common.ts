@@ -16,6 +16,8 @@ const COST_WAY = !ALLOWD_COST.has(process.env.COST_WAY ?? "")
   ? DEFAULT_COST_WAY
   : process.env.COST_WAY;
 
+const encoder = getEncoding("cl100k_base");
+
 async function costBalance(
   res: Response,
   hashCode: string,
@@ -29,7 +31,7 @@ async function costBalance(
   }
 
   // cost tokens
-  let encoder = getEncoding("cl100k_base");
+  // let encoder = getEncoding("cl100k_base");
   let completionTokens = 0;
   const reader = res.body?.getReader();
   if (!reader) {
@@ -60,9 +62,9 @@ async function costBalance(
     }
 
     completionTokens += encoder.encode(deltaText).length;
-    console.log("[OpenAI] completion tokens: ", completionTokens);
     // encoder.free;
   }
+  console.log("[OpenAI] completion tokens: ", completionTokens);
 
   if (COST_WAY === CostWay.UseBalance) {
     const totalTokens = completionTokens + extraTokens;
@@ -116,19 +118,21 @@ export async function requestOpenai(req: NextRequest, hashCode: string) {
   let promptTokens = 0;
 
   console.log("[OpenAI] cost way: ", COST_WAY);
-  if (COST_WAY === CostWay.UseBalance && req.body) {
+  if (
+    openaiPath === OpenaiPath.ChatPath &&
+    COST_WAY === CostWay.UseBalance &&
+    req.body
+  ) {
     const clonedBody = await req.text();
     fetchOptions.body = clonedBody;
     const jsonBody = JSON.parse(clonedBody);
 
-    if (jsonBody?.messages.length > 0 && jsonBody?.messages.length <= 6) {
-      const lastMessage = jsonBody.messages[jsonBody.messages.length - 1];
-      if (lastMessage.role === "user") {
-        let encoder = getEncoding("cl100k_base");
-        promptTokens += encoder.encode(lastMessage.content).length;
-        // encoder.free();
-        console.log("[OpenAI] prompt tokens: ", promptTokens);
+    if (jsonBody?.messages.length > 0) {
+      // let encoder = getEncoding("cl100k_base");
+      for (const message of jsonBody.messages) {
+        promptTokens += encoder.encode(message.content).length;
       }
+      console.log("[OpenAI] prompt tokens: ", promptTokens);
     }
   }
 
