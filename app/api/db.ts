@@ -27,8 +27,8 @@ export class UserCli {
   async getPrice() {
     const g3price = (await this.client.get("G3PRICE")) ?? 0;
     const g4price = (await this.client.get("G4PRICE")) ?? 0;
-    this.G3PRICE = typeof g3price === "string" ? 0 : g3price;
-    this.G4PRICE = typeof g4price === "string" ? 0 : g4price;
+    this.G3PRICE = typeof g3price === "string" ? parseFloat(g3price) : g3price;
+    this.G4PRICE = typeof g4price === "string" ? parseFloat(g4price) : g4price;
     this.lastPriceGet = Date.now();
   }
 
