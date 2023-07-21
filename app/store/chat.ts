@@ -288,6 +288,7 @@ export const useChatStore = create<ChatStore>()(
         const userMessage: ChatMessage = createMessage({
           role: "user",
           content: userContent,
+          model: modelConfig.model,
         });
 
         const botMessage: ChatMessage = createMessage({
@@ -490,6 +491,7 @@ export const useChatStore = create<ChatStore>()(
 
       summarizeSession() {
         const session = get().currentSession();
+        const modelConfig = session.mask.modelConfig;
 
         // remove error messages if any
         const messages = session.messages;
@@ -509,7 +511,7 @@ export const useChatStore = create<ChatStore>()(
           api.llm.chat({
             messages: topicMessages,
             config: {
-              model: "gpt-3.5-turbo",
+              model: modelConfig.model,
             },
             onFinish(message) {
               get().updateCurrentSession(
@@ -521,7 +523,6 @@ export const useChatStore = create<ChatStore>()(
           });
         }
 
-        const modelConfig = session.mask.modelConfig;
         const summarizeIndex = Math.max(
           session.lastSummarizeIndex,
           session.clearContextIndex ?? 0,

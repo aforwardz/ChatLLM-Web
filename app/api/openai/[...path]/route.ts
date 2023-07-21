@@ -2,7 +2,7 @@ import { OpenaiPath } from "@/app/constant";
 import { prettyObject } from "@/app/utils/format";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../auth";
-import { requestOpenai } from "../../common";
+import { requestOpenai, requestChatglm } from "../../common";
 
 const ALLOWD_PATH = new Set(Object.values(OpenaiPath));
 
@@ -44,8 +44,22 @@ async function handle(
     });
   }
 
+  const modelName = req.headers.get("ModelName") ?? "";
+
   try {
-    const res = await requestOpenai(req, authResult.hashCode ?? "");
+    let res = null;
+    // Model Dispatch
+    if (modelName.startsWith("chatglm")) {
+      res = await requestChatglm(req, authResult.hashCode ?? "");
+    } else {
+      res = await requestOpenai(req, authResult.hashCode ?? "");
+    }
+
+    if (res === null) {
+      return NextResponse.json({ error: true, msg: "Chat empty response" });
+    }
+
+    console.log("[Req DONE!]\n\n");
 
     return res;
   } catch (e) {

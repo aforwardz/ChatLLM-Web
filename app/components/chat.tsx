@@ -392,8 +392,9 @@ export function ChatActions(props: {
     const nextModel = models[nextIndex];
     chatStore.updateCurrentSession((session) => {
       session.mask.modelConfig.model = nextModel;
-      session.mask.syncGlobalConfig = false;
+      session.mask.syncGlobalConfig = true;
     });
+    config.update((config) => (config.modelConfig.model = nextModel));
   }
 
   return (
