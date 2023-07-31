@@ -318,10 +318,14 @@ function ChatAction(props: {
       }}
       onMouseEnter={updateWidth}
       onTouchStart={updateWidth}
+      onAnimationStart={updateWidth}
       style={
         {
-          "--icon-width": `${width.icon}px`,
+          "--icon-width": `${
+            props.icon.type.name === "SvgRobot" ? width.full : width.icon
+          }px`,
           "--full-width": `${width.full}px`,
+          "--text-opacity": `${props.icon.type.name === "SvgRobot" ? 1 : 0}`,
         } as React.CSSProperties
       }
     >
