@@ -62,6 +62,14 @@ export async function auth(req: NextRequest) {
       };
     }
 
+    if (codeInfo.balance <= 0) {
+      return {
+        error: true,
+        authType: "usage",
+        msg: "No more balance",
+      };
+    }
+
     if (modelName.includes("gpt-3") && codeInfo.gpt3remains <= 0) {
       return {
         error: true,

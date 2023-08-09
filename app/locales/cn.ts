@@ -5,7 +5,7 @@ const cn = {
   Error: {
     Unauthorized:
       "访问密码不正确或为空，请前往[登录](/#/auth)页输入正确的访问密码。",
-    BalanceUsedUp: "问答次数已用完，请VX联系congshen2077获得更多次数。",
+    BalanceUsedUp: "问答余额已用完，请VX联系congshen2077获得更多次数。",
   },
   Auth: {
     Title: "需要密码",

@@ -31,6 +31,8 @@ async function handle(
     );
   }
 
+  const modelName = req.headers.get("ModelName") ?? "";
+
   const authResult = await auth(req);
   console.log("[Auth Res]", authResult);
   if (authResult.error && authResult.authType === "access") {
@@ -38,13 +40,15 @@ async function handle(
       status: 401,
     });
   }
-  if (authResult.error && authResult.authType === "usage") {
+  if (
+    authResult.error &&
+    authResult.authType === "usage" &&
+    modelName.startsWith("gpt")
+  ) {
     return NextResponse.json(authResult, {
       status: 402,
     });
   }
-
-  const modelName = req.headers.get("ModelName") ?? "";
 
   try {
     let res = null;
