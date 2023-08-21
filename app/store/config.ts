@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { LLMModel } from "../client/api";
 import { getClientConfig } from "../config/client";
-import { DEFAULT_INPUT_TEMPLATE, StoreKey } from "../constant";
+import { DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey } from "../constant";
+
+export type ModelType = (typeof DEFAULT_MODELS)[number]["name"];
 
 export enum SubmitKey {
   Enter = "Enter",
@@ -24,21 +27,28 @@ export const DEFAULT_CONFIG = {
   theme: Theme.Auto as Theme,
   tightBorder: !!getClientConfig()?.isApp,
   sendPreviewBubble: true,
+  enableAutoGenerateTitle: true,
   sidebarWidth: 300,
 
   disablePromptHint: false,
 
   dontShowMaskSplashScreen: false, // dont show splash screen when create chat
+  hideBuiltinMasks: false, // dont add builtin masks
+
+  customModels: "",
+  models: DEFAULT_MODELS as any as LLMModel[],
 
   modelConfig: {
     model: "gpt-3.5-turbo" as ModelType,
     temperature: 0.5,
+    top_p: 1,
     max_tokens: 2000,
     presence_penalty: 0,
     frequency_penalty: 0,
     sendMemory: true,
     historyMessageCount: 4,
     compressMessageLengthThreshold: 1000,
+    enableInjectSystemPrompts: true,
     template: DEFAULT_INPUT_TEMPLATE,
   },
 };
@@ -48,40 +58,13 @@ export type ChatConfig = typeof DEFAULT_CONFIG;
 export type ChatConfigStore = ChatConfig & {
   reset: () => void;
   update: (updater: (config: ChatConfig) => void) => void;
+  mergeModels: (newModels: LLMModel[]) => void;
+  allModels: () => LLMModel[];
 };
 
 export type ModelConfig = ChatConfig["modelConfig"];
 
 const ENABLE_GPT4 = true;
-
-export const ALL_MODELS = [
-  {
-    name: "gpt-4",
-    available: ENABLE_GPT4,
-  },
-  {
-    name: "gpt-3.5-turbo",
-    available: true,
-  },
-  {
-    name: "chatglm2-6b", // chatglm2-6b
-    available: true,
-  },
-  {
-    name: "llama2", // llama2
-    available: false,
-  },
-  {
-    name: "ernie", // 文心一言
-    available: false,
-  },
-  {
-    name: "qwen-v1", // 通义千问
-    available: false,
-  },
-] as const;
-
-export type ModelType = (typeof ALL_MODELS)[number]["name"];
 
 export function limitNumber(
   x: number,
@@ -96,18 +79,12 @@ export function limitNumber(
   return Math.min(max, Math.max(min, x));
 }
 
-export function limitModel(name: string) {
-  return ALL_MODELS.some((m) => m.name === name && m.available)
-    ? name
-    : "gpt-3.5-turbo";
-}
-
 export const ModalConfigValidator = {
   model(x: string) {
-    return limitModel(x) as ModelType;
+    return x as ModelType;
   },
   max_tokens(x: number) {
-    return limitNumber(x, 0, 32000, 2000);
+    return limitNumber(x, 0, 100000, 2000);
   },
   presence_penalty(x: number) {
     return limitNumber(x, -2, 2, 0);
@@ -116,6 +93,9 @@ export const ModalConfigValidator = {
     return limitNumber(x, -2, 2, 0);
   },
   temperature(x: number) {
+    return limitNumber(x, 0, 1, 1);
+  },
+  top_p(x: number) {
     return limitNumber(x, 0, 1, 1);
   },
 };
@@ -134,22 +114,68 @@ export const useAppConfig = create<ChatConfigStore>()(
         updater(config);
         set(() => config);
       },
+
+      mergeModels(newModels) {
+        if (!newModels || newModels.length === 0) {
+          return;
+        }
+
+        const oldModels = get().models;
+        const modelMap: Record<string, LLMModel> = {};
+
+        for (const model of oldModels) {
+          model.available = false;
+          modelMap[model.name] = model;
+        }
+
+        for (const model of newModels) {
+          model.available = true;
+          modelMap[model.name] = model;
+        }
+
+        set(() => ({
+          models: Object.values(modelMap),
+        }));
+      },
+
+      allModels() {
+        const customModels = get()
+          .customModels.split(",")
+          .filter((v) => !!v && v.length > 0)
+          .map((m) => ({ name: m, available: true }));
+
+        const models = get().models.concat(customModels);
+        return models;
+      },
     }),
     {
       name: StoreKey.Config,
-      version: 3.2,
+      version: 3.7,
       migrate(persistedState, version) {
-        if (version === 3.2) return persistedState as any;
-
         const state = persistedState as ChatConfig;
-        state.modelConfig.sendMemory = true;
-        state.modelConfig.historyMessageCount = 4;
-        state.modelConfig.compressMessageLengthThreshold = 1000;
-        state.modelConfig.frequency_penalty = 0;
-        state.modelConfig.template = DEFAULT_INPUT_TEMPLATE;
-        state.dontShowMaskSplashScreen = false;
 
-        return state;
+        if (version < 3.4) {
+          state.modelConfig.sendMemory = true;
+          state.modelConfig.historyMessageCount = 4;
+          state.modelConfig.compressMessageLengthThreshold = 1000;
+          state.modelConfig.frequency_penalty = 0;
+          state.modelConfig.top_p = 1;
+          state.modelConfig.template = DEFAULT_INPUT_TEMPLATE;
+          state.dontShowMaskSplashScreen = false;
+          state.hideBuiltinMasks = false;
+        }
+
+        state.customModels = "chatglm2-6b";
+
+        if (version < 3.6) {
+          state.modelConfig.enableInjectSystemPrompts = true;
+        }
+
+        if (version < 3.7) {
+          state.enableAutoGenerateTitle = true;
+        }
+
+        return state as any;
       },
     },
   ),
