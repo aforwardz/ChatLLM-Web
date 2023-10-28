@@ -165,7 +165,7 @@ export const useAppConfig = create<ChatConfigStore>()(
           state.hideBuiltinMasks = false;
         }
 
-        state.customModels = "chatglm2-6b";
+        state.customModels = "chatglm3-6b";
 
         if (version < 3.6) {
           state.modelConfig.enableInjectSystemPrompts = true;
