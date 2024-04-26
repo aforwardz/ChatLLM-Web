@@ -55,10 +55,14 @@ async function costBalance(
         continue;
       }
 
-      const json = trimmedLine.replace("data: ", "");
-      const obj = JSON.parse(json);
-      const content = obj.choices ? obj.choices[0].delta.content : "";
-      deltaText = deltaText.concat(content);
+      try {
+        const json = trimmedLine.replace("data: ", "");
+        const obj = JSON.parse(json);
+        const content = obj.choices ? obj.choices[0].delta.content : "";
+        deltaText = deltaText.concat(content);
+      } catch (e) {
+        console.log("[OpenAI] ignore one part message");
+      }
     }
 
     completionTokens += encoder.encode(deltaText).length;
