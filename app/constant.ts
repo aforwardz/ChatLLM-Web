@@ -77,7 +77,7 @@ export const RedisPort = 6379;
 
 export const DEFAULT_MODELS = [
   {
-    name: "gpt-4",
+    name: "gpt-4-turbo",
     available: true,
   },
   {

@@ -9,6 +9,7 @@ export class UserCli {
   public client: RedisClientType;
   private G3PRICE: number;
   private G4PRICE: number;
+  private GLMPRICE: number;
   private lastPriceGet: number;
 
   constructor() {
@@ -19,6 +20,7 @@ export class UserCli {
 
     this.G3PRICE = 0;
     this.G4PRICE = 0;
+    this.GLMPRICE = 0;
     this.lastPriceGet = 0;
 
     this.getPrice();
@@ -27,8 +29,11 @@ export class UserCli {
   async getPrice() {
     const g3price = (await this.client.get("G3PRICE")) ?? 0;
     const g4price = (await this.client.get("G4PRICE")) ?? 0;
+    const glmprice = (await this.client.get("GLMPRICE")) ?? 0;
     this.G3PRICE = typeof g3price === "string" ? parseFloat(g3price) : g3price;
     this.G4PRICE = typeof g4price === "string" ? parseFloat(g4price) : g4price;
+    this.GLMPRICE =
+      typeof glmprice === "string" ? parseFloat(glmprice) : glmprice;
     this.lastPriceGet = Date.now();
   }
 
@@ -80,6 +85,9 @@ export class UserCli {
       }
       if (modelName.includes("gpt-4")) {
         codeInfo.balance -= this.G4PRICE * charCount;
+      }
+      if (modelName.startsWith("chatglm")) {
+        codeInfo.balance -= this.GLMPRICE * charCount;
       }
 
       console.log("[Redis New Val]", codeInfo);

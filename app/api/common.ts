@@ -30,6 +30,8 @@ async function costBalance(
     return;
   }
 
+  const ModelPrefix = model.startsWith("chatglm") ? "ChatGLM" : "OpenAI";
+
   // cost tokens
   // let encoder = getEncoding("cl100k_base");
   let completionTokens = 0;
@@ -61,14 +63,14 @@ async function costBalance(
         const content = obj.choices ? obj.choices[0].delta.content : "";
         deltaText = deltaText.concat(content);
       } catch (e) {
-        console.log("[OpenAI] ignore one part message");
+        console.log("[" + ModelPrefix + "] ignore one part message");
       }
     }
 
     completionTokens += encoder.encode(deltaText).length;
     // encoder.free;
   }
-  console.log("[OpenAI] completion tokens: ", completionTokens);
+  console.log("[" + ModelPrefix + "] completion tokens: ", completionTokens);
 
   if (COST_WAY === CostWay.UseBalance) {
     const totalTokens = completionTokens + extraTokens;
@@ -223,10 +225,6 @@ export async function requestChatglm(req: NextRequest, hashCode: string) {
   const fetchOptions: RequestInit = {
     headers: {
       "Content-Type": "application/json",
-      //      Authorization: authValue,
-      //      ...(process.env.OPENAI_ORG_ID && {
-      //        "OpenAI-Organization": process.env.OPENAI_ORG_ID,
-      //      }),
     },
     cache: "no-store",
     method: req.method,
@@ -240,6 +238,23 @@ export async function requestChatglm(req: NextRequest, hashCode: string) {
   let promptTokens = 0;
 
   console.log("[ChatGLM] cost way: ", COST_WAY);
+  if (
+    openaiPath === OpenaiPath.ChatPath &&
+    COST_WAY === CostWay.UseBalance &&
+    req.body
+  ) {
+    const clonedBody = await req.text();
+    fetchOptions.body = clonedBody;
+    const jsonBody = JSON.parse(clonedBody);
+
+    if (jsonBody?.messages.length > 0) {
+      // let encoder = getEncoding("cl100k_base");
+      for (const message of jsonBody.messages) {
+        promptTokens += encoder.encode(message.content).length;
+      }
+      console.log("[ChatGLM] prompt tokens: ", promptTokens);
+    }
+  }
 
   try {
     const res = await fetch(fetchUrl, fetchOptions);
@@ -250,6 +265,11 @@ export async function requestChatglm(req: NextRequest, hashCode: string) {
 
     // to disbale ngnix buffering
     newHeaders.set("X-Accel-Buffering", "no");
+
+    if (openaiPath === OpenaiPath.ChatPath && res.ok) {
+      const clonedRes = res.clone();
+      costBalance(clonedRes, hashCode, modelName, promptTokens);
+    }
 
     return new Response(res.body, {
       status: res.status,
