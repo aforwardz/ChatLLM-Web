@@ -225,6 +225,10 @@ export class ChatGPTApi implements LLMApi {
       response.hard_limit_usd = Math.round(response.hard_limit_usd * 100) / 100;
     }
 
+    if (response.balance) {
+      response.balance = Math.round(response.balance * 100000) / 100000;
+    }
+
     return {
       used: response.total_usage,
       total: response.hard_limit_usd,

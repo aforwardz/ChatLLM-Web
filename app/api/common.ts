@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { OpenaiPath, CostWay } from "@/app/constant";
 import { user_cli } from "./db";
 import { getEncoding } from "js-tiktoken";
+import tr from "@/app/locales/tr";
 
 export const OPENAI_URL = "api.openai.com";
 const DEFAULT_PROTOCOL = "https";
@@ -51,7 +52,7 @@ async function costBalance(
     const chunk = textDecoder.decode(value);
 
     let deltaText = "";
-    for (const line of chunk.split("\n")) {
+    for (const line of chunk.replace("\n", "").split("\n")) {
       const trimmedLine = line.trim();
       if (!trimmedLine || trimmedLine === "data: [DONE]") {
         continue;
@@ -63,7 +64,9 @@ async function costBalance(
         const content = obj.choices ? obj.choices[0].delta.content : "";
         deltaText = deltaText.concat(content);
       } catch (e) {
-        console.log("[" + ModelPrefix + "] ignore one part message");
+        console.log(
+          "[" + ModelPrefix + "] ignore one part message: " + trimmedLine,
+        );
       }
     }
 
